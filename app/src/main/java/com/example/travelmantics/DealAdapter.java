@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DealAdapter extends RecyclerView.Adapter<DealAdapter.DealViewHolder> {
     ArrayList<TravelDeal> deals;
@@ -27,7 +28,7 @@ public class DealAdapter extends RecyclerView.Adapter<DealAdapter.DealViewHolder
     private ChildEventListener mChildEventListener;
 
     public DealAdapter(){
-        FirebaseUtil.openFBReference("traveldeals");
+        //FirebaseUtil.openFBReference("traveldeals", ListActivity);
         mFirebaseDatabase = FirebaseUtil.mFirebaseDatabase;
         mDataReference = FirebaseUtil.mDatabaseReference;
         deals = FirebaseUtil.mDeals;
