@@ -30,7 +30,7 @@ public class DealAdapter extends RecyclerView.Adapter<DealAdapter.DealViewHolder
         mFirebaseDatabase = FirebaseUtil.mFirebaseDatabase;
         mDataReference = FirebaseUtil.mDatabaseReference;
         deals = FirebaseUtil.mDeals;
-        mDataReference.addChildEventListener(mChildEventListener);
+
         mChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
@@ -63,7 +63,7 @@ public class DealAdapter extends RecyclerView.Adapter<DealAdapter.DealViewHolder
 
             }
         };
-
+        mDataReference.addChildEventListener(mChildEventListener);
     }
     @NonNull
     @Override
@@ -88,12 +88,18 @@ public class DealAdapter extends RecyclerView.Adapter<DealAdapter.DealViewHolder
 
     public class DealViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle;
+        TextView tvDescription;
+        TextView tvPrice;
         public DealViewHolder(View itemView) {
             super(itemView);
-            tvTitle = (TextView)itemView.findViewById(R.id.tvTitle);
+            tvTitle = (TextView) itemView.findViewById(R.id.tvTitle);
+            tvDescription = (TextView) itemView.findViewById(R.id.tvDescription);
+            tvPrice = (TextView) itemView.findViewById(R.id.tvPrice);
         }
         public void bind (TravelDeal deal) {
             tvTitle.setText(deal.getTitle());
+            tvDescription.setText(deal.getDescription());
+            tvPrice.setText(deal.getPrice());
         }
     }
 }
