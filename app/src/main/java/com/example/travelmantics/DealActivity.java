@@ -34,7 +34,7 @@ public class DealActivity extends AppCompatActivity {
         txtPrice = (EditText) findViewById(R.id.textPrice);
         Intent intent = getIntent();
         TravelDeal deal = (TravelDeal) intent.getSerializableExtra("Deal");
-        if(deal == null) {
+        if (deal == null) {
             deal = new TravelDeal();
         }
         this.deal = deal;
@@ -57,6 +57,12 @@ public class DealActivity extends AppCompatActivity {
                 saveDeal();
                 Toast.makeText(this, "Deal saved", Toast.LENGTH_LONG).show();
                 clean();
+                backToList();
+                return true;
+            case R.id.delete_menu:
+                deleteDeal();
+                Toast.makeText(this, "Deal Deleted", Toast.LENGTH_SHORT).show();
+                backToList();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -71,10 +77,27 @@ public class DealActivity extends AppCompatActivity {
     }
 
     private void saveDeal() {
-        String title = txtTitle.getText().toString();
-        String description = txtDescription.getText().toString();
-        String price = txtPrice.getText().toString();
-        TravelDeal deal = new TravelDeal(title, description, price, "");
-        mDatabaseReference.push().setValue(deal);
+        deal.setTitle(txtTitle.getText().toString());
+        deal.setDescription(txtDescription.getText().toString());
+        deal.setPrice(txtPrice.getText().toString());
+
+        if (deal == null) {
+            mDatabaseReference.push().setValue(deal);
+        } else {
+            mDatabaseReference.child(deal.getId()).setValue(deal);
+        }
+    }
+
+    private void deleteDeal() {
+        if (deal == null) {
+            Toast.makeText(this, "Please save the deal before deleting", Toast.LENGTH_SHORT).show();
+        } else {
+            mDatabaseReference.child(deal.getId()).removeValue();
+        }
+    }
+
+    private void backToList() {
+        Intent intent = new Intent(this, ListActivity.class);
+        startActivity(intent);
     }
 }
