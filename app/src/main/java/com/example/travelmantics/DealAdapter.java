@@ -1,6 +1,7 @@
 package com.example.travelmantics;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -108,6 +109,10 @@ public class DealAdapter extends RecyclerView.Adapter<DealAdapter.DealViewHolder
         public void onClick(View v) {
             int position = getAdapterPosition();
             Log.d("Click", String.valueOf(position));
+            TravelDeal selectedDeal = deals.get(position);
+            Intent intent = new Intent(v.getContext(), DealActivity.class);
+            intent.putExtra("Deal", selectedDeal);
+            v.getContext().startActivity(intent);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.example.travelmantics;
 
 //import android.support.v4.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,6 +19,7 @@ public class DealActivity extends AppCompatActivity {
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mDatabaseReference;
     EditText txtTitle, txtDescription, txtPrice;
+    TravelDeal deal;
 
 
     @Override
@@ -30,6 +32,15 @@ public class DealActivity extends AppCompatActivity {
         txtTitle = (EditText) findViewById(R.id.textTitle);
         txtDescription = (EditText) findViewById(R.id.textDescription);
         txtPrice = (EditText) findViewById(R.id.textPrice);
+        Intent intent = getIntent();
+        TravelDeal deal = (TravelDeal) intent.getSerializableExtra("Deal");
+        if(deal == null) {
+            deal = new TravelDeal();
+        }
+        this.deal = deal;
+        txtTitle.setText(deal.getTitle());
+        txtDescription.setText(deal.getDescription());
+        txtPrice.setText(deal.getPrice());
     }
 
     @Override
