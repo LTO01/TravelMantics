@@ -17,10 +17,12 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.net.URI;
 
@@ -30,6 +32,7 @@ public class DealActivity extends AppCompatActivity {
     EditText txtTitle, txtDescription, txtPrice;
     TravelDeal deal;
     private static final int PICTURE_RESULT = 42;
+    private ImageView mImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +44,7 @@ public class DealActivity extends AppCompatActivity {
         txtDescription = (EditText) findViewById(R.id.textDescription);
         txtPrice = (EditText) findViewById(R.id.textPrice);
         Button btnImage = findViewById(R.id.btnImage);
+        mImage = findViewById(R.id.image);
         btnImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,7 +144,13 @@ public class DealActivity extends AppCompatActivity {
         if(requestCode == PICTURE_RESULT && resultCode == RESULT_OK){
             Uri imageUri = data.getData();
             StorageReference ref = FirebaseUtil.mStorageRef.child(imageUri.getLastPathSegment());
-            ref.putFile(imageUri);
+            ref.putFile(imageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    String url = taskSnapshot.getStorage().getDownloadUrl().toString();
+                    deal.setImageUrl(url);
+                }
+            });
 
 
         }
