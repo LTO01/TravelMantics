@@ -3,8 +3,10 @@ package com.example.travelmantics;
 //import android.support.v4.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -14,15 +16,18 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.net.URI;
 
@@ -45,15 +50,6 @@ public class DealActivity extends AppCompatActivity {
         txtPrice = (EditText) findViewById(R.id.textPrice);
         Button btnImage = findViewById(R.id.btnImage);
         mImage = findViewById(R.id.image);
-        btnImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/jpeg");
-                intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-                startActivityForResult(intent.createChooser(intent, "Insert Picture"), PICTURE_RESULT);
-            }
-        });
         Intent intent = getIntent();
         TravelDeal deal = (TravelDeal) intent.getSerializableExtra("Deal");
         if (deal == null) {
@@ -63,6 +59,18 @@ public class DealActivity extends AppCompatActivity {
         txtTitle.setText(deal.getTitle());
         txtDescription.setText(deal.getDescription());
         txtPrice.setText(deal.getPrice());
+        showImage(deal.getImageUrl());
+        btnImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/jpeg");
+                intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+                startActivityForResult(intent.createChooser(intent, "Insert Picture"), PICTURE_RESULT);
+            }
+        });
+
+
     }
 
     @Override
@@ -124,6 +132,21 @@ public class DealActivity extends AppCompatActivity {
             Toast.makeText(this, "Please save the deal before deleting", Toast.LENGTH_SHORT).show();
         } else {
             mDatabaseReference.child(deal.getId()).removeValue();
+            if (deal.getImageName() != null && !deal.getImageName().isEmpty()) {
+                StorageReference picRef = FirebaseUtil.mStorage.getReference().child(deal.getImageName());
+                picRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("Delete Image", "Image deleted successfully!");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d("Delete image", e.getMessage());
+                    }
+                });
+
+            }
         }
     }
 
@@ -138,17 +161,29 @@ public class DealActivity extends AppCompatActivity {
         txtDescription.setEnabled(isEnabled);
     }
 
+    private void showImage(String url) {
+        if (url != null && !url.isEmpty()) {
+            int width = Resources.getSystem().getDisplayMetrics().widthPixels;
+            Picasso.get().load(url).resize(width, width * 2 / 3).centerCrop().into(mImage);
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == PICTURE_RESULT && resultCode == RESULT_OK){
+        if (requestCode == PICTURE_RESULT && resultCode == RESULT_OK) {
             Uri imageUri = data.getData();
             StorageReference ref = FirebaseUtil.mStorageRef.child(imageUri.getLastPathSegment());
             ref.putFile(imageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     String url = taskSnapshot.getStorage().getDownloadUrl().toString();
+                    String pictureName = taskSnapshot.getStorage().getPath();
+                    deal.setImageName(pictureName);
+                    Log.d("Url", url);
+                    Log.d("Name", pictureName);
                     deal.setImageUrl(url);
+                    showImage(url);
                 }
             });
 
