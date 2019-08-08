@@ -20,8 +20,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -70,7 +73,6 @@ public class DealActivity extends AppCompatActivity {
             }
         });
 
-
     }
 
     @Override
@@ -81,10 +83,12 @@ public class DealActivity extends AppCompatActivity {
             menu.findItem(R.id.delete_menu).setVisible(true);
             menu.findItem(R.id.save_menu).setVisible(true);
             enableEditTexts(true);
+            findViewById(R.id.btnImage).setEnabled(true);
         } else {
             menu.findItem(R.id.delete_menu).setVisible(false);
             menu.findItem(R.id.save_menu).setVisible(false);
             enableEditTexts(false);
+            findViewById(R.id.btnImage).setEnabled(false);
         }
         return true;
     }
@@ -173,21 +177,28 @@ public class DealActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICTURE_RESULT && resultCode == RESULT_OK) {
             Uri imageUri = data.getData();
-            StorageReference ref = FirebaseUtil.mStorageRef.child(imageUri.getLastPathSegment());
-            ref.putFile(imageUri).addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            final StorageReference ref = FirebaseUtil.mStorageRef.child(imageUri.getLastPathSegment());
+            UploadTask uploadTask = ref.putFile(imageUri);
+            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                 @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    String url = taskSnapshot.getStorage().getDownloadUrl().toString();
-                    String pictureName = taskSnapshot.getStorage().getPath();
-                    deal.setImageName(pictureName);
-                    Log.d("Url", url);
-                    Log.d("Name", pictureName);
-                    deal.setImageUrl(url);
-                    showImage(url);
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (task.isSuccessful()) {
+                        return ref.getDownloadUrl();
+                    } else {
+                        throw task.getException();
+                    }
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+                @Override
+                public void onComplete(@NonNull Task<Uri> task) {
+                    if (task.isSuccessful()) {
+                        deal.setImageUrl(task.getResult().toString());
+                        deal.setImageName(task.getResult().toString());
+                    } else {
+                        Log.d("DealActivity", "Error saving image");
+                    }
                 }
             });
-
-
         }
     }
 }
