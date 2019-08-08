@@ -63,6 +63,7 @@ public class DealActivity extends AppCompatActivity {
         txtDescription.setText(deal.getDescription());
         txtPrice.setText(deal.getPrice());
         showImage(deal.getImageUrl());
+        final TravelDeal finalDeal = deal;
         btnImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -70,6 +71,7 @@ public class DealActivity extends AppCompatActivity {
                 intent.setType("image/jpeg");
                 intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
                 startActivityForResult(intent.createChooser(intent, "Insert Picture"), PICTURE_RESULT);
+                showImage(finalDeal.getImageUrl());
             }
         });
 
@@ -124,7 +126,7 @@ public class DealActivity extends AppCompatActivity {
         deal.setDescription(txtDescription.getText().toString());
         deal.setPrice(txtPrice.getText().toString());
 
-        if (deal == null) {
+        if (deal.getId() == null) {
             mDatabaseReference.push().setValue(deal);
         } else {
             mDatabaseReference.child(deal.getId()).setValue(deal);
